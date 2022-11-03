@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-// @ts-ignore
-import io, { Socket } from 'Socket.IO-client';
+import io, { Socket } from 'socket.io-client';
 import { Connection } from './models';
 
 let socket: Socket | null = null;
