@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import io, { Socket } from 'Socket.IO-client';
+import { Connection } from './models';
 
 let socket: Socket | null = null;
 
 export function useWebsocket() {
-  const [connections, setConnections] = useState([]);
+  const [connections, setConnections] = useState<Connection[]>([]);
 
   useEffect(() => {
     window.addEventListener('beforeunload', () => {
@@ -19,7 +20,7 @@ export function useWebsocket() {
         await fetch('/api/websocket');
         socket = io();
 
-        socket.on('users-updated', (connections) => {
+        socket.on('users-updated', (connections: Connection[]) => {
           setConnections(connections);
         });
       }
