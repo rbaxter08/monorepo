@@ -13,8 +13,40 @@ export function isMatch(data: string, startIndex: number, target: string) {
     subStr === `<${target}\n` ||
     subStr === `<${target}\t`;
 
-  if (matches) console.log(`${subStr} matches ${target}`);
   return matches;
+}
+
+export function createTopLevelTracker() {
+  const brackets: string[] = [];
+  const quotes: string[] = [];
+
+  function handleCharacter(ch?: string) {
+    if (ch === '{') {
+      brackets.push(ch);
+      return true;
+    }
+
+    if (ch === '}') {
+      brackets.pop();
+      return true;
+    }
+    if (ch === '"') {
+      if (quotes.length === 0) {
+        quotes.push(ch);
+      } else {
+        quotes.pop();
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  function isTopLevel() {
+    return brackets.length === 0 && quotes.length === 0;
+  }
+
+  return { isTopLevel, handleCharacter };
 }
 
 // once we know we are hitting a match, get the full block of the element
@@ -23,15 +55,21 @@ export function getBlock(data: string, startIndex: number) {
   const brackets = ['<'];
   let result = '<';
   let currentIndex = startIndex + 1;
+
+  const { isTopLevel, handleCharacter } = createTopLevelTracker();
+
   while (brackets.length && data[currentIndex] !== undefined) {
     const currentCharacter = data[currentIndex];
+    handleCharacter(currentCharacter);
 
-    if (currentCharacter === '<') {
-      brackets.push(currentCharacter);
-    }
+    if (isTopLevel()) {
+      if (currentCharacter === '<') {
+        brackets.push(currentCharacter);
+      }
 
-    if (currentCharacter === '>') {
-      brackets.pop();
+      if (currentCharacter === '>') {
+        brackets.pop();
+      }
     }
 
     result += currentCharacter;
@@ -70,34 +108,16 @@ export function trimComponentStart(input: string) {
 
 export function getProperties(input: string): string[] {
   const properties: string[] = [];
-  const brackets: string[] = [];
-  const quotes: string[] = [];
+  const { isTopLevel, handleCharacter } = createTopLevelTracker();
 
   let result = '';
   trimComponentStart(input)
     .split('')
     .forEach((ch) => {
-      if (ch === '{') {
-        brackets.push(ch);
-        return;
-      }
-      if (ch === '}') {
-        brackets.pop();
-        return;
-      }
-      if (ch === '"') {
-        if (quotes.length === 0) {
-          quotes.push(ch);
-        } else {
-          quotes.pop();
-        }
-        return;
-      }
+      const isSpecialChar = handleCharacter(ch);
+      if (isSpecialChar) return;
 
-      const topLevel = brackets.length === 0 && quotes.length === 0;
-
-      // potential property, evaluate
-      if (topLevel) {
+      if (isTopLevel()) {
         if (propertyTerminatingRegex.test(ch) && result) {
           properties.push(result.trim());
           result = '';
@@ -169,6 +189,7 @@ export function main() {
   }
 
   let data = 'const fileDict = {\n';
+  let fileCount = 0;
   // process all files
   files.forEach((file) => {
     if (checkedFilesDict[file.path] === true) return;
@@ -177,6 +198,7 @@ export function main() {
     allInstances.push(...fileInstances);
     if (fileInstances.length > 0) {
       data += `"${file.path}": ${fileInstances.length},\n`;
+      fileCount++;
     }
   });
   data += '}';
@@ -195,8 +217,10 @@ export function main() {
     propDict[property] += 1;
   });
 
+  console.log(`search ${files.length} files\n`);
+
   console.log(
-    `\x1b[32mFound ${allInstances.length} instances of <${input}> across ${files.length} files\n`
+    `\x1b[32mFound ${allInstances.length} instances of <${input}> across ${fileCount} files\n`
   );
 
   console.log(`\x1b[37m<${input}`);
