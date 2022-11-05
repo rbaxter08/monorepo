@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import fs from 'fs';
 import klawSync from 'klaw-sync';
 
@@ -167,8 +168,8 @@ export function main() {
     throw new Error('input required');
   }
 
-  const allInstances: string[] = [];
   const checkedFilesDict: Record<string, boolean> = {};
+
   const files: klawSync.Item[] = [];
   const dirs: klawSync.Item[] = [];
 
@@ -188,21 +189,25 @@ export function main() {
     }
   }
 
-  let data = 'const fileDict = {\n';
-  let fileCount = 0;
-  // process all files
-  files.forEach((file) => {
-    if (checkedFilesDict[file.path] === true) return;
-    checkedFilesDict[file.path] = true;
-    const fileInstances = processFile(file.path, input);
-    allInstances.push(...fileInstances);
-    if (fileInstances.length > 0) {
-      data += `"${file.path}": ${fileInstances.length},\n`;
-      fileCount++;
-    }
-  });
-  data += '}';
-  fs.writeFileSync('./files.ts', data);
+  function checkFiles(input: string) {
+    const allInstances: string[] = [];
+
+    let fileCount = 0;
+    // process all files
+    files.forEach((file) => {
+      if (checkedFilesDict[file.path] === true) return;
+      checkedFilesDict[file.path] = true;
+      const fileInstances = processFile(file.path, input);
+      allInstances.push(...fileInstances);
+      if (fileInstances.length > 0) {
+        fileCount++;
+      }
+    });
+
+    return { fileCount, allInstances };
+  }
+
+  const { fileCount, allInstances } = checkFiles(input);
 
   // If no instances, break early
   if (allInstances.length === 0) {
@@ -217,18 +222,32 @@ export function main() {
     propDict[property] += 1;
   });
 
-  console.log(`search ${files.length} files\n`);
+  console.log(`Searched ${files.length} files\n`);
 
   console.log(
-    `\x1b[32mFound ${allInstances.length} instances of <${input}> across ${fileCount} files\n`
+    `Found ${chalk.hex('#4EC9B0')(
+      allInstances.length
+    )} instances of ${chalk.hex('#4EC9B0')(`<${input} />`)} in ${chalk.hex(
+      '#4EC9B0'
+    )(`${fileCount}`)} files\n`
   );
 
-  console.log(`\x1b[37m<${input}`);
-  Object.keys(propDict).forEach((property) => {
-    const count = propDict[property] ?? 0;
-    console.log(
-      `  ${property}: ${getPercentage(count, allInstances.length).toFixed(4)}%`
-    );
-  });
-  console.log(`/>`);
+  console.log(chalk.hex('#4EC9B0')(`<${input}`));
+
+  Object.keys(propDict)
+    .sort((a, b) => {
+      // @ts-ignore
+      return propDict[b] - propDict[a];
+    })
+    .forEach((property) => {
+      const count = propDict[property] ?? 0;
+      console.log(
+        chalk.hex('#9CDCFE')(
+          `  ${property}${chalk.white(
+            `: ${getPercentage(count, allInstances.length).toFixed(4)}%`
+          )}`
+        )
+      );
+    });
+  console.log(chalk.hex('#4EC9B0')(`/>`));
 }

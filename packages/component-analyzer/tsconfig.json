@@ -1,6 +1,12 @@
 {
   "extends": "@tsconfig/node16-strictest-esm/tsconfig.json",
   "compilerOptions": {
-    "module": "CommonJS"
+    "module": "ESNext",
+    "moduleResolution": "Node"
+  },
+  "exclude": ["./jest.config.js"],
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
   }
 }
