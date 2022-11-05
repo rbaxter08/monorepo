@@ -1,15 +1,6 @@
 import fs from 'fs';
 import klawSync from 'klaw-sync';
 
-// #1 Stream in a file
-// #2 Find components
-// #3 Find imports
-// #4 Split up attribtues
-// #5 Output nicely
-// #6 Process directories
-
-const input = 'div';
-
 // determines if, starting from the current character, we are about to hit a match
 // by looking ahead and checking the chars
 function isMatch(data: string, startIndex: number, target: string) {
@@ -125,7 +116,7 @@ function getPercentage(count: number, total: number) {
   return (count / total) * 100;
 }
 
-function processFile(path: string) {
+function processFile(path: string, input: string) {
   // read in the file
   const data = fs.readFileSync(path, 'utf-8');
 
@@ -141,8 +132,14 @@ function processFile(path: string) {
 
 export function main() {
   const path = process.argv[2];
+  const input = process.argv[3];
+
   if (path === undefined) {
     throw new Error('path required');
+  }
+
+  if (input === undefined) {
+    throw new Error('input required');
   }
 
   const allInstances: string[] = [];
@@ -167,7 +164,7 @@ export function main() {
 
   // process all files
   files.forEach((file) => {
-    const fileInstances = processFile(file.path);
+    const fileInstances = processFile(file.path, input);
     allInstances.push(...fileInstances);
   });
 
