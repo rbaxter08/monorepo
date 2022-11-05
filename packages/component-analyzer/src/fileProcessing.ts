@@ -83,35 +83,57 @@ export function getElement(data: string, startIndex: number) {
   return result;
 }
 
-function processFile(path: string, input: string) {
+// https://stackoverflow.com/a/73265022 lol
+// this is close, but not perfect, it over selects, probably in cases like "ButtonDialog"
+// or "DialogButton", etc.
+const importRegex =
+  /import(?:["'\s]*([\w*{}\n, ]+)from\s*)?["'\s](.*[@\w/_-]+)["'\s].*/gm;
+
+function getImports(data: string, query: string) {
+  const imports = [...data.matchAll(importRegex)];
+  return imports
+    .filter((importMatch) => importMatch[1]?.includes(query) && importMatch[2])
+    .map((importMatch) => importMatch[2]) as string[];
+}
+
+function processFile(path: string, query: string) {
   const data = fs.readFileSync(path, 'utf-8');
   const instances: string[] = [];
+  let hasMatch = false;
   data.split('').forEach((_, index) => {
-    if (isMatch(data, index, input)) {
+    if (isMatch(data, index, query)) {
+      hasMatch = true;
       instances.push(getElement(data, index));
     }
   });
-  return instances;
+
+  let imports: string[] = [];
+  if (hasMatch) {
+    imports = getImports(data, query);
+  }
+  return { instances, imports };
 }
 
 function checkFiles(paths: string[], input: string) {
   const checkedFilesDict: Record<string, boolean> = {};
   let fileCount = 0;
+  let imps: string[] = [];
   const instances = paths.flatMap((path) => {
     if (checkedFilesDict[path] === true) {
       return [];
     }
 
     checkedFilesDict[path] = true;
-    const fileInstances = processFile(path, input);
-    if (fileInstances.length > 0) {
+    const { instances, imports } = processFile(path, input);
+    if (instances.length > 0) {
       fileCount++;
     }
+    imps.push(...imports);
 
-    return fileInstances;
+    return instances;
   });
 
-  return { fileCount, instances };
+  return { fileCount, instances, imports: imps };
 }
 
 function getFilePaths(path: string) {
@@ -141,6 +163,6 @@ function getFilePaths(path: string) {
 
 export function search(path: string, query: string) {
   const paths = getFilePaths(path);
-  const { fileCount, instances } = checkFiles(paths, query);
-  return { fileCount, instances };
+  const { fileCount, instances, imports } = checkFiles(paths, query);
+  return { fileCount, instances, imports };
 }
