@@ -3,18 +3,23 @@ import klawSync from 'klaw-sync';
 
 // determines if, starting from the current character, we are about to hit a match
 // by looking ahead and checking the chars
-function isMatch(data: string, startIndex: number, target: string) {
+export function isMatch(data: string, startIndex: number, target: string) {
   const subStr = data.substring(startIndex, startIndex + target.length + 2);
-  return (
+
+  const matches =
     subStr === `<${target} ` ||
     subStr === `<${target}>` ||
-    subStr === `<${target}/`
-  );
+    subStr === `<${target}/` ||
+    subStr === `<${target}\n` ||
+    subStr === `<${target}\t`;
+
+  if (matches) console.log(`${subStr} matches ${target}`);
+  return matches;
 }
 
 // once we know we are hitting a match, get the full block of the element
 // by finding it's closing > index
-function getBlock(data: string, startIndex: number) {
+export function getBlock(data: string, startIndex: number) {
   const brackets = ['<'];
   let result = '<';
   let currentIndex = startIndex + 1;
@@ -119,7 +124,7 @@ function getPercentage(count: number, total: number) {
 function processFile(path: string, input: string) {
   // read in the file
   const data = fs.readFileSync(path, 'utf-8');
-
+  // console.log('processing', path);
   // loop through and look for a comopnent
   const instances: string[] = [];
   data.split('').forEach((_, index) => {
@@ -143,6 +148,7 @@ export function main() {
   }
 
   const allInstances: string[] = [];
+  const checkedFilesDict: Record<string, boolean> = {};
   const files: klawSync.Item[] = [];
   const dirs: klawSync.Item[] = [];
 
@@ -162,11 +168,19 @@ export function main() {
     }
   }
 
+  let data = 'const fileDict = {\n';
   // process all files
   files.forEach((file) => {
+    if (checkedFilesDict[file.path] === true) return;
+    checkedFilesDict[file.path] = true;
     const fileInstances = processFile(file.path, input);
     allInstances.push(...fileInstances);
+    if (fileInstances.length > 0) {
+      data += `"${file.path}": ${fileInstances.length},\n`;
+    }
   });
+  data += '}';
+  fs.writeFileSync('./files.ts', data);
 
   // If no instances, break early
   if (allInstances.length === 0) {
@@ -181,7 +195,9 @@ export function main() {
     propDict[property] += 1;
   });
 
-  console.log(`\x1b[32mFound ${allInstances.length} instances of <${input}>\n`);
+  console.log(
+    `\x1b[32mFound ${allInstances.length} instances of <${input}> across ${files.length} files\n`
+  );
 
   console.log(`\x1b[37m<${input}`);
   Object.keys(propDict).forEach((property) => {
