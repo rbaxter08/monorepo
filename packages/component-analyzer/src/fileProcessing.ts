@@ -43,7 +43,7 @@ export function createTopLevelTracker() {
 
 // once we know we are hitting a match, get the full block of the element
 // by finding it's closing > index
-export function getBlock(data: string, startIndex: number) {
+export function getElement(data: string, startIndex: number) {
   const brackets = ['<'];
   let result = '<';
   let currentIndex = startIndex + 1;
@@ -80,7 +80,7 @@ function processFile(path: string, input: string) {
   const instances: string[] = [];
   data.split('').forEach((_, index) => {
     if (isMatch(data, index, input)) {
-      instances.push(getBlock(data, index));
+      instances.push(getElement(data, index));
     }
   });
   return instances;
