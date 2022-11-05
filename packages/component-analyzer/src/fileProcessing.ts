@@ -1,0 +1,146 @@
+import fs from 'fs';
+import klawSync from 'klaw-sync';
+
+// determines if, starting from the current character, we are about to hit a match
+// by looking ahead and checking the chars
+export function isMatch(data: string, startIndex: number, target: string) {
+  const subStr = data.substring(startIndex, startIndex + target.length + 2);
+
+  const matches =
+    subStr === `<${target} ` ||
+    subStr === `<${target}>` ||
+    subStr === `<${target}/` ||
+    subStr === `<${target}\n` ||
+    subStr === `<${target}\t`;
+
+  return matches;
+}
+
+export function createTopLevelTracker() {
+  const brackets: string[] = [];
+  const quotes: string[] = [];
+
+  function handleCharacter(ch?: string) {
+    if (ch === '{') {
+      brackets.push(ch);
+      return true;
+    }
+
+    if (ch === '}') {
+      brackets.pop();
+      return true;
+    }
+    if (ch === '"') {
+      if (quotes.length === 0) {
+        quotes.push(ch);
+      } else {
+        quotes.pop();
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  function isTopLevel() {
+    return brackets.length === 0 && quotes.length === 0;
+  }
+
+  return { isTopLevel, handleCharacter };
+}
+
+// once we know we are hitting a match, get the full block of the element
+// by finding it's closing > index
+export function getBlock(data: string, startIndex: number) {
+  const brackets = ['<'];
+  let result = '<';
+  let currentIndex = startIndex + 1;
+
+  const { isTopLevel, handleCharacter } = createTopLevelTracker();
+
+  while (brackets.length && data[currentIndex] !== undefined) {
+    const currentCharacter = data[currentIndex];
+    handleCharacter(currentCharacter);
+
+    if (isTopLevel()) {
+      if (currentCharacter === '<') {
+        brackets.push(currentCharacter);
+      }
+
+      if (currentCharacter === '>') {
+        brackets.pop();
+      }
+    }
+
+    result += currentCharacter;
+    currentIndex++;
+  }
+
+  if (brackets.length) {
+    throw new Error('Invalid File Exception');
+  }
+
+  return result;
+}
+
+function processFile(path: string, input: string) {
+  const data = fs.readFileSync(path, 'utf-8');
+  const instances: string[] = [];
+  data.split('').forEach((_, index) => {
+    if (isMatch(data, index, input)) {
+      instances.push(getBlock(data, index));
+    }
+  });
+  return instances;
+}
+
+function checkFiles(paths: string[], input: string) {
+  const checkedFilesDict: Record<string, boolean> = {};
+  let fileCount = 0;
+  const instances = paths.flatMap((path) => {
+    if (checkedFilesDict[path] === true) {
+      return [];
+    }
+
+    checkedFilesDict[path] = true;
+    const fileInstances = processFile(path, input);
+    if (fileInstances.length > 0) {
+      fileCount++;
+    }
+
+    return fileInstances;
+  });
+
+  return { fileCount, instances };
+}
+
+function getFilePaths(path: string) {
+  const dirs: klawSync.Item[] = [];
+  const files: string[] = [];
+
+  if (fs.lstatSync(path).isDirectory()) {
+    files.push(...klawSync(path, { nodir: true }).map((file) => file.path));
+    dirs.push(...klawSync(path, { nofile: true }));
+  } else {
+    files.push(path);
+  }
+
+  // collect all files
+  while (dirs.length) {
+    const currentDir = dirs.pop();
+    if (currentDir) {
+      dirs.push(...klawSync(currentDir.path, { nofile: true }));
+      files.push(
+        ...klawSync(currentDir.path, { nodir: true }).map((file) => file.path)
+      );
+    }
+  }
+
+  return files;
+}
+
+export function search(path: string, query: string) {
+  const paths = getFilePaths(path);
+  const { fileCount, instances } = checkFiles(paths, query);
+  return { fileCount, instances };
+}

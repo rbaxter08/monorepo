@@ -4,7 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "Node"
   },
-  "exclude": ["./jest.config.js"],
+  "exclude": ["jest.config.ts"],
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"
