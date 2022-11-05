@@ -1,19 +1,18 @@
 import fs from 'fs';
 import klawSync from 'klaw-sync';
 
-// determines if, starting from the current character, we are about to hit a match
-// by looking ahead and checking the chars
-export function isMatch(data: string, startIndex: number, target: string) {
-  const subStr = data.substring(startIndex, startIndex + target.length + 2);
-
-  const matches =
-    subStr === `<${target} ` ||
-    subStr === `<${target}>` ||
-    subStr === `<${target}/` ||
-    subStr === `<${target}\n` ||
-    subStr === `<${target}\t`;
-
-  return matches;
+const terminatingCharRegex = /\s|>|\//;
+/**
+ *
+ * @param data - The full body of text that we're examining
+ * @param index - The index to check for a potential match
+ * @param target - The match to look for
+ * @returns true if the current index is the start of a query match, false otherwise
+ */
+export function isMatch(data: string, index: number, query: string) {
+  const subStr = data.substring(index, index + query.length + 1);
+  const terminatingChar = data[index + query.length + 1] ?? '';
+  return subStr === `<${query}` && terminatingCharRegex.test(terminatingChar);
 }
 
 export function createTopLevelTracker() {
@@ -30,6 +29,7 @@ export function createTopLevelTracker() {
       brackets.pop();
       return true;
     }
+
     if (ch === '"') {
       if (quotes.length === 0) {
         quotes.push(ch);
