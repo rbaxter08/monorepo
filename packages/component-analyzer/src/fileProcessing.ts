@@ -1,11 +1,19 @@
 import fs from 'fs';
 import klawSync from 'klaw-sync';
 
-const terminatingCharRegex = /\s|>|\//;
-export function isMatch(data: string, index: number, query: string) {
-  // +2 1 to make last char inclusive, 1 to account for terminating char
-  const subStr = data.substring(index, index + query.length + 2);
-  return terminatingCharRegex.test(subStr);
+// determines if, starting from the current character, we are about to hit a match
+// by looking ahead and checking the chars
+export function isMatch(data: string, startIndex: number, target: string) {
+  const subStr = data.substring(startIndex, startIndex + target.length + 2);
+
+  const matches =
+    subStr === `<${target} ` ||
+    subStr === `<${target}>` ||
+    subStr === `<${target}/` ||
+    subStr === `<${target}\n` ||
+    subStr === `<${target}\t`;
+
+  return matches;
 }
 
 export function createTopLevelTracker() {
