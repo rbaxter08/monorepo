@@ -50,6 +50,5 @@ export function getProperties(input: string): string[] {
 }
 
 export function getPropertyBreakdown(instances: string[]): Array<string> {
-  const allProps = instances.flatMap((instance) => getProperties(instance));
-  return allProps;
+  return instances.flatMap((instance) => getProperties(instance));
 }
