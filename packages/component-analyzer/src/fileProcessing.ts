@@ -68,22 +68,29 @@ export function getElement(data: string, startIndex: number) {
     currentIndex++;
   }
 
-  if (brackets.length) {
-    throw new Error('Error: missing closing > for element');
-  }
-
-  return result;
+  return brackets.length ? '' : result;
 }
 
-function processFile(path: string, input: string) {
+/**
+ * For every char in the file, see if that char is the start of a match
+ * if so: get the element
+ * if not: return empty str
+ * then filter out the empty str
+ *
+ * returns: string[] - an array of all the matched elments
+ */
+function processFile(path: string, query: string) {
   const data = fs.readFileSync(path, 'utf-8');
-  const instances: string[] = [];
-  data.split('').forEach((_, index) => {
-    if (isMatch(data, index, input)) {
-      instances.push(getElement(data, index));
+
+  const d = data.split('').flatMap((_, index) => {
+    if (isMatch(data, index, query)) {
+      const element = getElement(data, index);
+      return element === '' ? [] : [element];
     }
+
+    return [];
   });
-  return instances;
+  return d.filter((match) => match !== '');
 }
 
 function checkFiles(paths: string[], input: string) {
