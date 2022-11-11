@@ -1,7 +1,7 @@
 {
   "name": "@baxterjs/divination",
   "version": "0.1.0",
-  "type": "module",
+  "type": "commonjs",
   "main": "./dist/index.js",
   "repository": {
     "url": "https://github.com/rbaxter08/monorepo/tree/main/packages/component-analyzer"
@@ -27,7 +27,9 @@
     "chalk": "^5.1.2",
     "commander": "^9.4.1"
   },
-  "bin": "./dist/index.js",
+  "bin": {
+    "divine": "./dist/index.js"
+  },
   "files": [
     "./dist/**"
   ]
