@@ -1,6 +1,6 @@
 {
   "name": "@baxterjs/divination",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "type": "commonjs",
   "main": "./dist/index.js",
   "repository": {
@@ -31,6 +31,6 @@
     "divine": "./dist/index.js"
   },
   "files": [
-    "./dist/**"
+    "./dist/index.js"
   ]
 }
