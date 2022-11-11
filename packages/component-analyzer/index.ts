@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { program } from 'commander';
 import { search } from './src/fileProcessing';
 import { logResults } from './src/logResults';
