@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
+  "repository": {
+    "url": "https://github.com/rbaxter08/monorepo/tree/main/packages/component-analyzer"
+  },
   "scripts": {
     "start": "ts-node index.ts",
     "build": "pnpm esbuild index.ts --bundle --platform=node --outfile=dist/index.js --format=cjs",
