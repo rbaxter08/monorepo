@@ -3,8 +3,8 @@ import { search } from './src/fileProcessing';
 import { logResults } from './src/logResults';
 
 program
-  .option('-p, --path <type>', 'directory path to search through')
-  .option('-q --query <type>', 'Component to search for');
+  .option('-p, --path <path>', 'directory path to search through')
+  .option('-q, --query <query>', 'Component to search for');
 
 program.parse();
 
