@@ -1,22 +1,12 @@
 import chalk from 'chalk';
-import { getPropertyBreakdown } from './src/elementProcessing';
-import { search } from './src/fileProcessing';
-import { formatNumberAsPercentage } from './src/utils';
+import { getPropertyBreakdown } from './elementProcessing';
+import type { SearchResult } from './fileProcessing';
+import { formatNumberAsPercentage } from './utils';
 
-function main() {
-  const path = process.argv[2];
-  const query = process.argv[3];
-
-  if (path === undefined) {
-    throw new Error('path required');
-  }
-
-  if (query === undefined) {
-    throw new Error('input required');
-  }
-
-  const { instances, fileCount, imports } = search(path, query);
-
+export function logResults(
+  { instances, fileCount, imports }: SearchResult,
+  query: string
+) {
   // If no instances, break early
   if (instances.length === 0) {
     console.log(`No instances of ${query}`);
@@ -42,7 +32,6 @@ function main() {
     importDict[imp] += 1;
   });
 
-  console.log('\nTop imports:');
   const output: Array<{ 'imported from': string; '% of imports': number }> = [];
   Object.keys(importDict)
     .sort((a, b) => {
@@ -58,7 +47,6 @@ function main() {
     });
   console.table(output);
 
-  console.log('Component usage:');
   console.log(chalk.hex('#4EC9B0')(`\n\n\t<${query}`));
   let longestPropertyLength = 0;
   Object.keys(propDict)
@@ -71,7 +59,7 @@ function main() {
     })
     .forEach((property) => {
       const count = propDict[property] ?? 0;
-      const propLabel = `\t  ${property}`.padEnd(longestPropertyLength + 5);
+      const propLabel = `\t  ${property} `.padEnd(longestPropertyLength + 5);
       console.log(
         chalk.hex('#9CDCFE')(
           `${propLabel}${chalk.white(
@@ -82,5 +70,3 @@ function main() {
     });
   console.log(chalk.hex('#4EC9B0')(`\t/>\n\n`));
 }
-
-main();

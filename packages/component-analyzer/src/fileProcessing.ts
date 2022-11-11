@@ -114,7 +114,7 @@ function processFile(path: string, query: string) {
   return { instances, imports };
 }
 
-function checkFiles(paths: string[], input: string) {
+function processFiles(paths: string[], input: string) {
   const checkedFilesDict: Record<string, boolean> = {};
   let fileCount = 0;
   let imps: string[] = [];
@@ -161,8 +161,9 @@ function getFilePaths(path: string) {
   return files;
 }
 
+export type SearchResult = ReturnType<typeof search>;
+
 export function search(path: string, query: string) {
   const paths = getFilePaths(path);
-  const { fileCount, instances, imports } = checkFiles(paths, query);
-  return { fileCount, instances, imports };
+  return processFiles(paths, query);
 }

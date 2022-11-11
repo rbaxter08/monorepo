@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "ts-node main.ts",
+    "start": "ts-node index.ts",
     "test": "jest"
   },
   "devDependencies": {
@@ -19,6 +19,7 @@
     "typescript": "4.8.4"
   },
   "dependencies": {
-    "chalk": "^5.1.2"
+    "chalk": "^5.1.2",
+    "commander": "^9.4.1"
   }
 }
