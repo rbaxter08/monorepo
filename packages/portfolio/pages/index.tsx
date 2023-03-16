@@ -71,16 +71,7 @@ export default function Home() {
         {state === 'about' && (
           <section className="flex w-5/6 py-16 justify-center">
             <p className="font-sans w-3/5">
-              Hello hello hello Hello hello hello Hello hello hello Hello hello
-              hello Hello hello hello Hello hello hello Hello hello hello Hello
-              hello hello Hello hello hello Hello hello hello Hello hello hello
-              Hello hello hello Hello hello hello Hello hello hello Hello hello
-              hello Hello hello hello Hello hello hello Hello hello hello Hello
-              hello hello Hello hello hello Hello hello hello Hello hello hello
-              Hello hello hello Hello hello hello Hello hello hello Hello hello
-              hello Hello hello hello Hello hello hello Hello hello hello Hello
-              hello hello Hello hello hello Hello hello hello Hello hello hello
-              Hello hello hello Hello hello hello Hello hello hello
+              My favorite movies include: American Psycho, The Thing, and Jaws.
             </p>
           </section>
         )}
